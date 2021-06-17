@@ -1,9 +1,9 @@
 ﻿namespace tun2socks
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Net;
-    using VEthernet.Collections;
     using VEthernet.Net.Udp;
     using VEthernet.Threading;
 
