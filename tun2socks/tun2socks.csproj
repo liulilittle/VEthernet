@@ -60,6 +60,7 @@
   <ItemGroup>
     <Content Include="Driver\OemVista.inf" />
     <Content Include="Driver\tapinstall.exe" />
+    <Content Include="ip.txt" />
     <Content Include="VEthernet.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -68,6 +69,7 @@
     <None Include="Driver\tap0901.cat" />
     <None Include="Driver\tap0901.sys" />
     <None Include="Properties\app.manifest" />
+    <None Include="start.bat" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

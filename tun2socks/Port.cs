@@ -110,33 +110,21 @@
 
         public virtual void Dispose()
         {
+            SocketExtension.Closesocket(Interlocked.Exchange(ref this._server, null));
+            SocketExtension.Closesocket(Interlocked.Exchange(ref this._socket, null));
             if (Interlocked.CompareExchange(ref this._disposed, 1, 0) == 0)
             {
-                using (Socket socket = Interlocked.Exchange(ref this._server, null))
-                {
-                    if (socket != null)
-                    {
-                        SocketExtension.Closesocket(socket);
-                    }
-                }
-                using (Socket socket = Interlocked.Exchange(ref this._socket, null))
-                {
-                    if (socket != null)
-                    {
-                        SocketExtension.Closesocket(socket);
-                    }
-                }
                 lock (this._sendqueues)
                 {
                     this._sendqueues.Clear();
                     Interlocked.Exchange(ref this._open, 0);
                 }
-                Interlocked.Exchange(ref this._sendtoEP, null);
-                Interlocked.Exchange(ref this._buffer, null);
-                Interlocked.Exchange(ref this._monitorbuf, null);
-                Interlocked.Exchange(ref this._localEP, null);
-                Interlocked.Exchange(ref this._datagram, null);
             }
+            Interlocked.Exchange(ref this._sendtoEP, null);
+            Interlocked.Exchange(ref this._buffer, null);
+            Interlocked.Exchange(ref this._monitorbuf, null);
+            Interlocked.Exchange(ref this._localEP, null);
+            Interlocked.Exchange(ref this._datagram, null);
             GC.SuppressFinalize(this);
         }
 

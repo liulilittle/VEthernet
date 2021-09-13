@@ -190,7 +190,24 @@
 
         protected override bool ProcessIcmpInput(IPFrame packet, IcmpFrame frame)
         {
-            return base.ProcessIcmpInput(packet, frame);
+            if (!base.ProcessIcmpInput(packet, frame))
+            {
+                return false;
+            }
+            if (frame.Type != IcmpType.ICMP_ECHO)
+            {
+                return false;
+            }
+            IcmpFrame e = new IcmpFrame(frame.Destination, frame.Source, frame.Payload)
+            {
+                Type = IcmpType.ICMP_ER,
+                Code = frame.Code,
+                Ttl = IPFrame.DefaultTtl,
+                Sequence = frame.Sequence,
+                Identification = frame.Identification,
+            };
+            this.Output(IcmpLayer.ToIPFrame(e));
+            return true;
         }
 
         private IEnumerable<IPAddressRange> BypassIplistFromFileName(string fullName)

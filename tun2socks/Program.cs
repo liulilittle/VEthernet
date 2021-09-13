@@ -2,7 +2,7 @@
  * Description: Quick implementation of a no-tech difficulty tun2socks samples
  * Author     ：Copyright (C) 2017~2021 SupersocksR ORG. All rights reserved
  * DateTime   ：2021-06-02
- * Related    ：Ppp 2/3 layer VEthernet [mini-version]
+ * Related    ：VEthernet 2/3 layer VEthernet [mini-version]
  * Statement1 : Product implementations based on this technology do not allow closed sources and must declare the use of VEthernet
  * Statement2 : If you borrow code to implement the same class or other, you must declare that you borrow VEthernet
  * Statement3 : Do not allow the statement, VEthernet technology independent research and development
