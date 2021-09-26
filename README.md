@@ -15,7 +15,7 @@ You can easily develop any form of "3 Layer VPN", "Traffic Tracking", "Traffic P
 > * ./tun2socks.exe --proxyserver=192.168.0.21 --proxyport=1080 --bypass-iplist=./ip.txt
 
 #### Comment
-* 1.0.0.0.zip bypass with chinese-mainland ip.txt
+* 1.0.0.2.zip bypass with chinese-mainland ip.txt
 * Optimized code compilation is not allowed .NET Framework bugs cause crashes
 
 #### Statement

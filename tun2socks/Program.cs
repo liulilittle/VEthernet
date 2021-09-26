@@ -11,12 +11,15 @@ namespace tun2socks
 {
     using System;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Net.NetworkInformation;
+    using System.Net.Sockets;
     using System.Security;
     using VEthernet.Core;
     using VEthernet.Net.Auxiliary;
+    using VEthernet.Net.IP;
+    using VEthernet.Net.Routing;
     using VEthernet.Net.Tun;
     using VEthernet.Utilits;
     using WebProxy = VEthernet.Net.Internet.WebProxy;
@@ -37,16 +40,16 @@ namespace tun2socks
             }
             else
             {
-                Console.WriteLine("Installing the VEthernet Windows Virtual Network Card TAP device driver");
+                Console.WriteLine("Installing the VEthernet Windows Virtual Network Card TAP device driver.");
             }
             if (Layer3Netif.InstallTapWindows(AppDomain.CurrentDomain.BaseDirectory + "\\Driver", "VEthernet"))
             {
-                Console.WriteLine("Installed the VEthernet Virtual Network Card TAP device driver to computer");
+                Console.WriteLine("Installed the VEthernet Virtual Network Card TAP device driver to computer.");
                 return true;
             }
             else
             {
-                Console.WriteLine("Unable to install Virtual Network Card TAP device driver to computer");
+                Console.WriteLine("Unable to install Virtual Network Card TAP device driver to computer.");
                 return false;
             }
         }
@@ -54,6 +57,22 @@ namespace tun2socks
         [SecurityCritical]
         [SecuritySafeCritical]
         static Program() => SocketExtension.PeriodGCCollect = 10000;
+
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        private static void RepiarDefaultGateway()
+        {
+            NetworkInterface ni = Layer3Netif.GetPreferredNetworkInterfaceAddress(true, out IPAddress gwAddress);
+            if (ni != null)
+            {
+                IPAddress ipAddress = Layer3Netif.GetNetworkInterfaceAddress(ni, out IPAddress ipMask);
+                if (Router.FindAllAnyAddress(out Router.Error error).
+                    FirstOrDefault(r => IPFrame.Equals(r.NextHop, gwAddress)) == null)
+                {
+                    Router.Create(IPAddress.Any, IPAddress.Any, gwAddress, 1);
+                }
+            }
+        }
 
         [MTAThread]
         private static void Main(string[] args)
@@ -68,7 +87,7 @@ namespace tun2socks
             }
             if (!Fw.IsAdministrator())
             {
-                Console.WriteLine("Please run this program under administrator's privilege");
+                Console.WriteLine("Please run this program under administrator's privilege.");
                 Console.ReadKey(false);
                 return;
             }
@@ -79,13 +98,48 @@ namespace tun2socks
             }
             else
             {
-                WebProxy.Direct();
+                // If the system physical hosting Ethernet card is not correctly configured with a default gateway address (0.0.0.0),
+                // tun2socks attempts to calculate the general default gateway address and configure it to the system to
+                RepiarDefaultGateway(); // restore the connection to the Internet network.
+
+                WebProxy.Direct(); // Disable system proxy settings.
+
+                // Add or modify tun2socks private/public network firewall rules.
                 Fw.NetFirewallAddAllApplication(Program.ApplicationName, Process.GetCurrentProcess().MainModule.FileName);
             }
-            IPAddress.TryParse(Environments.GetCommandArgumentString(args, "--proxyserver") ?? string.Empty,
-                out IPAddress proxyserver);
-            IPEndPoint serverEP = new IPEndPoint(proxyserver, (int)Environments.GetCommandArgumentInt64(args, "--proxyport").GetValueOrDefault());
-            using (Socks5Ethernet ethernet = new Socks5Ethernet(serverEP, 
+
+            // Obtain the valid proxyserver address from the command line interface parameter.
+            string proxyserver = Environments.GetCommandArgumentString(args, "--proxyserver") ?? string.Empty;
+            if (!IPAddress.TryParse(proxyserver, out IPAddress proxyserverAddress) ||
+                proxyserver == null ||
+                proxyserverAddress.AddressFamily != AddressFamily.InterNetwork ||
+                IPFrame.Equals(IPAddress.Any, proxyserverAddress) ||
+                IPFrame.Equals(IPAddress.Broadcast, proxyserverAddress) ||
+                IPFrame.Equals(IPAddress.None, proxyserverAddress))
+            {
+                // Query the dns-server to obtain the IPv4 address of the proxy server.
+                try
+                {
+                    proxyserverAddress = Dns.GetHostAddresses(proxyserver).FirstOrDefault(p =>
+                        p.AddressFamily == AddressFamily.InterNetwork &&
+                            !IPFrame.Equals(IPAddress.Any, p) &&
+                            !IPFrame.Equals(IPAddress.Broadcast, p) &&
+                            !IPFrame.Equals(IPAddress.None, p));
+                }
+                catch (Exception)
+                {
+                    proxyserverAddress = null;
+                }
+                if (proxyserverAddress == null)
+                {
+                    Console.WriteLine("Please use a valid socks5 agent server \"IPv4 or domain\" address.");
+                    Console.ReadKey(false);
+                    return;
+                }
+            }
+
+            IPEndPoint serverEP = new IPEndPoint(proxyserverAddress, (int)Environments.GetCommandArgumentInt64(args, "--proxyport").GetValueOrDefault());
+            using (Socks5Ethernet ethernet = new Socks5Ethernet(serverEP,
                 Environments.GetCommandArgumentString(args, "--bypass-iplist"), null))
             {
                 Console.Title = string.Format(Program.ApplicationName, $"@{serverEP}");
