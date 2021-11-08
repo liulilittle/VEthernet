@@ -129,7 +129,7 @@
                     bw.Write(buffer, ofs, len); // DATA
 
                     byte[] message = ms.GetBuffer();
-                    return SocketExtension.BeginSendTo(s, message, 0, (int)ms.Position, localEP, (ar) => SocketExtension.EndSendTo(s, ar));
+                    return SocketExtension.SendTo(s, message, 0, (int)ms.Position, localEP);
                 }
             }
         }

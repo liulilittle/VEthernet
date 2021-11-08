@@ -56,7 +56,13 @@ namespace tun2socks
 
         [SecurityCritical]
         [SecuritySafeCritical]
-        static Program() => SocketExtension.PeriodGCCollect = 10000;
+        static Program()
+        {
+            // Adjust the application system scheduling priority, reference to the source code implementation:
+            // https://blog.csdn.net/liulilittle/article/details/121021222
+            Priority.AdjustToHighestPriority();
+            SocketExtension.PeriodGCCollect = 10000;
+        }
 
         [SecurityCritical]
         [SecuritySafeCritical]
