@@ -40,9 +40,12 @@
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="VEthernet, Version=1.0.0.2, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="VEthernet, Version=1.0.0.4, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\VEthernet.dll</HintPath>
     </Reference>
@@ -60,6 +63,7 @@
   <ItemGroup>
     <Content Include="Driver\OemVista.inf" />
     <Content Include="Driver\tapinstall.exe" />
+    <Content Include="icon.ico" />
     <Content Include="ip.txt" />
     <Content Include="VEthernet.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

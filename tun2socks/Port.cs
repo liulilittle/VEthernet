@@ -11,6 +11,7 @@
     using System.Threading;
     using VEthernet.Core;
     using VEthernet.Coroutines;
+    using VEthernet.Net;
     using VEthernet.Net.Auxiliary;
     using VEthernet.Net.IP;
     using VEthernet.Net.Udp;
@@ -148,7 +149,7 @@
             {
                 this._buffer = new byte[ushort.MaxValue];
                 this._monitorbuf = new byte[1];
-                this._server = new Socket(serverEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                this._server = new NetworkSocket(serverEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 this._server.BeginConnect(serverEP, (ar) =>
                 {
                     bool closing = true;
@@ -214,8 +215,7 @@
                     {
                         bindEP = new IPEndPoint(interfaceEP.Address, 0);
                     }
-                    this._socket = new Socket(interfaceEP.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    this._socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    this._socket = new NetworkSocket(interfaceEP.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                     this._socket.Bind(bindEP);
                     bindEP = (IPEndPoint)this._socket.LocalEndPoint;
                 }
