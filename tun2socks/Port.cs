@@ -8,6 +8,7 @@
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
+    using System.Text;
     using System.Threading;
     using VEthernet.Core;
     using VEthernet.Coroutines;
@@ -186,6 +187,13 @@
             bool success = false;
             do
             {
+                Socks5Ethernet ethernet = this._datagram?.Ethernet;
+                if (ethernet == null)
+                {
+                    break;
+                }
+
+                bool authentication = !string.IsNullOrEmpty(ethernet.User) && !string.IsNullOrEmpty(ethernet.Password);
                 if (this.IsDisposed)
                 {
                     break;
@@ -193,9 +201,9 @@
 
                 YieldContext.Integer outlen = new YieldContext.Integer();
                 byte[] messages = this._buffer;
-                messages[0] = 0x05;    // VER 
-                messages[1] = 0x01;    // NMETHODS
-                messages[2] = 0x00;    // METHODS 
+                messages[0] = 0x05;                                 // VER 
+                messages[1] = 0x01;                                 // NMETHODS
+                messages[2] = (byte)(authentication ? 0x02 : 0x00); // METHODS 
 
                 yield return y.Send(socket, messages, 0, 3, outlen);
                 if (outlen < 0)
@@ -204,10 +212,41 @@
                 }
 
                 yield return y.Receive(socket, messages, 0, 2, outlen);
-                if (outlen <= 0 || messages[1] != 0x00)
+                if (outlen < 1 || authentication && messages[1] != 0x02 || !authentication && messages[1] != 0x00)
                 {
                     break;
                 }
+
+                if (authentication)
+                {
+                    using (MemoryStream ms = new MemoryStream(messages))
+                    {
+                        using (BinaryWriter bw = new BinaryWriter(ms))
+                        {
+                            byte[] bytes = Encoding.UTF8.GetBytes(ethernet.User);
+                            bw.Write((byte)0x01);
+                            bw.Write((byte)bytes.Length);
+                            bw.Write(bytes);
+
+                            bytes = Encoding.UTF8.GetBytes(ethernet.Password);
+                            bw.Write((byte)bytes.Length);
+                            bw.Write(bytes);
+
+                            yield return y.Send(socket, messages, 0, (int)ms.Position, outlen);
+                            if (outlen < 0)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    yield return y.Receive(socket, messages, 0, 2, outlen);
+                    if (outlen <= 0 || messages[1] != 0x00)
+                    {
+                        break;
+                    }
+                }
+
                 IPEndPoint bindEP = default(IPEndPoint);
                 try
                 {
@@ -382,6 +421,11 @@
 
         protected virtual bool SendToServer(BufferSegment messages, IPEndPoint destinationEP)
         {
+            Datagram datagram = this._datagram;
+            if (datagram == null)
+            {
+                return false;
+            }
             Socket socket = this._socket;
             if (socket == null)
             {
@@ -401,7 +445,10 @@
             {
                 return false;
             }
-            Console.WriteLine($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
+            if (!datagram.Ethernet.ProductMode)
+            {
+                Console.WriteLine($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
+            }
             return true;
         }
 

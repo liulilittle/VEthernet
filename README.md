@@ -13,6 +13,7 @@ You can easily develop any form of "3 Layer VPN", "Traffic Tracking", "Traffic P
 #### Usage
 > * ./tun2socks.exe --proxyserver=192.168.0.21 --proxyport=1080
 > * ./tun2socks.exe --proxyserver=192.168.0.21 --proxyport=1080 --bypass-iplist=./ip.txt
+> * ./tun2socks.exe --product-mode=yes --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=sa --proxypassword=admin --bypass-iplist=./ip.txt
 
 #### Comment
 * 1.0.0.5.zip bypass with chinese-mainland ip.txt

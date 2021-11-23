@@ -1,1 +1,1 @@
-tun2socks.exe --proxyserver=192.168.0.21 --proxyport=1080 --bypass-iplist=./ip.txt
+tun2socks.exe --product-mode=yes --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=sa --proxypassword=admin --bypass-iplist=./ip.txt

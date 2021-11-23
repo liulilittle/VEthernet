@@ -80,6 +80,18 @@ namespace tun2socks
             }
         }
 
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        private static bool ToBoolean(string s, bool defaultValue)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return defaultValue;
+            }
+            s = s.ToLower().Trim();
+            return s == "y" || s == "yes" || s == "true" || s == "1";
+        }
+
         [MTAThread]
         private static void Main(string[] args)
         {
@@ -87,7 +99,7 @@ namespace tun2socks
             Console.TreatControlCAsInput = true;
             if (args.Length <= 0)
             {
-                Console.WriteLine($"usage: {Process.GetCurrentProcess().MainModule.FileName} --proxyserver=192.168.0.21 --proxyport=1080 --bypass-iplist=./ip.txt");
+                Console.WriteLine($"usage: {Process.GetCurrentProcess().MainModule.FileName} --product-mode=[yes|no] --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=[sa] --proxypassword=[admin] --bypass-iplist=./ip.txt");
                 Console.ReadKey(false);
                 return;
             }
@@ -146,6 +158,9 @@ namespace tun2socks
 
             IPEndPoint serverEP = new IPEndPoint(proxyserverAddress, (int)Environments.GetCommandArgumentInt64(args, "--proxyport").GetValueOrDefault());
             using (Socks5Ethernet ethernet = new Socks5Ethernet(serverEP,
+                ToBoolean(Environments.GetCommandArgumentString(args, "--product-mode"), true),
+                Environments.GetCommandArgumentString(args, "--proxyuser"),
+                Environments.GetCommandArgumentString(args, "--proxypassword"),
                 Environments.GetCommandArgumentString(args, "--bypass-iplist"), null))
             {
                 Console.Title = string.Format(Program.ApplicationName, $"@{serverEP}");

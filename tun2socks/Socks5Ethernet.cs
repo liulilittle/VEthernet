@@ -27,7 +27,7 @@
 
         [SecurityCritical]
         [SecuritySafeCritical]
-        public Socks5Ethernet(IPEndPoint proxyServer, string bypassIplist, NetworkStatistics networkStatistics) : base(0, networkStatistics)
+        public Socks5Ethernet(IPEndPoint proxyServer, bool productMode, string user, string password, string bypassIplist, NetworkStatistics networkStatistics) : base(0, networkStatistics)
         {
             this.Server = proxyServer ?? throw new ArgumentNullException(nameof(proxyServer));
             NetworkInterface exitNetworkInterface = Layer3Netif.GetPreferredNetworkInterfaceAddress(true, out IPAddress exitGatewayAddress);
@@ -35,10 +35,13 @@
             {
                 throw new InvalidOperationException("The preferred outbound ethernet device interface could not be found");
             }
-            else
+            this.ProductMode = productMode;
+            if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(password))
             {
-                this.Datagram = this.CreateDatagram();
+                this.User = user;
+                this.Password = password;
             }
+            this.Datagram = this.CreateDatagram();
             this.ExitNetworkInterface = exitNetworkInterface;
             this.ExitGatewayAddress = exitGatewayAddress;
             this.ExitInterfaceAddress = Layer3Netif.GetNetworkInterfaceAddress(exitNetworkInterface, out IPAddress exitInterfaceMask);
@@ -55,7 +58,13 @@
 
         public Datagram Datagram { get; }
 
+        public bool ProductMode { get; }
+
         public IPEndPoint Server { get; }
+
+        public string User { get; set; }
+
+        public string Password { get; set; }
 
         public IPAddress ExitGatewayAddress { get; private set; }
 
