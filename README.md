@@ -1,6 +1,6 @@
 # VEthernet
 ### Easily implement tun2socks (SOCKS5) based on VEthernet.
-You can easily develop any form of "3 Layer VPN", "Traffic Tracking", "Traffic Pollution", "Traffic Injection", "Game Accelerator" and other types of applications on Windows x86 platform through the Vethernet framework
+You can easily develop any form of "3 layer VPN", "Traffic Tracking", "Traffic Pollution", "Traffic Injection", "Game Accelerator" and other types of applications on Windows x86 platform through the VEthernet framework
 
 #### Environment
 * *`.Net Framework 4.0`*
@@ -16,7 +16,7 @@ You can easily develop any form of "3 Layer VPN", "Traffic Tracking", "Traffic P
 > * ./tun2socks.exe --product-mode=yes --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=sa --proxypassword=admin --bypass-iplist=./ip.txt
 
 #### Comment
-* 1.0.0.5.zip bypass with chinese-mainland ip.txt
+* 1.0.0.6.zip bypass with chinese-mainland ip.txt
 * Optimized code compilation is not allowed .NET Framework bugs cause crashes
 
 #### Statement
