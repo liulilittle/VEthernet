@@ -99,7 +99,7 @@ namespace tun2socks
             Console.TreatControlCAsInput = true;
             if (args.Length <= 0)
             {
-                Console.WriteLine($"usage: {Process.GetCurrentProcess().MainModule.FileName} --product-mode=[yes|no] --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=[sa] --proxypassword=[admin] --bypass-iplist=./ip.txt");
+                Console.WriteLine($"usage: {Process.GetCurrentProcess().MainModule.FileName} --dns-addresses=8.8.8.8;8.8.4.4 --product-mode=[yes|no] --proxyserver=192.168.0.21 --proxyport=1080 --proxyuser=[sa] --proxypassword=[admin] --bypass-iplist=./ip.txt");
                 Console.ReadKey(false);
                 return;
             }
@@ -156,8 +156,14 @@ namespace tun2socks
                 }
             }
 
+            // Gets the current cli-cmd configuration interface specified for the DNS servers list of the tun2socks vNetwork.
+            // Ipep::ToAddresses support the following character delimiters. The default is '; '
+            // Symbols: ',', '|', ';', '-', ':', '*'
+            IPAddress[] dnsAddresses = Ipep.ToAddresses(Environments.GetCommandArgumentString(args, "--dns-addresses"));
+
+            // Create an Ipep address for the socks5 server.
             IPEndPoint serverEP = new IPEndPoint(proxyserverAddress, (int)Environments.GetCommandArgumentInt64(args, "--proxyport").GetValueOrDefault());
-            using (Socks5Ethernet ethernet = new Socks5Ethernet(serverEP,
+            using (Socks5Ethernet ethernet = new Socks5Ethernet(serverEP, dnsAddresses,
                 ToBoolean(Environments.GetCommandArgumentString(args, "--product-mode"), true),
                 Environments.GetCommandArgumentString(args, "--proxyuser"),
                 Environments.GetCommandArgumentString(args, "--proxypassword"),
