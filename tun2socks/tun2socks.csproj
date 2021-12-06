@@ -52,13 +52,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Datagram.cs" />
-    <Compile Include="NetworkAddress.cs" />
     <Compile Include="Port.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Socks5Ethernet.cs" />
     <Compile Include="Connection.cs" />
-    <Compile Include="Socks5Extension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Driver\OemVista.inf" />

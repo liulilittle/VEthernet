@@ -15,6 +15,8 @@
     using VEthernet.Net;
     using VEthernet.Net.Auxiliary;
     using VEthernet.Net.IP;
+    using VEthernet.Net.Socks5;
+    using VEthernet.Net.Socks5.Udp;
     using VEthernet.Net.Udp;
     using VEthernet.Utilits;
 
