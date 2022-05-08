@@ -23,13 +23,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -45,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="VEthernet, Version=1.0.0.6, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="VEthernet, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\VEthernet.dll</HintPath>
     </Reference>
@@ -62,10 +63,22 @@
     <Content Include="Driver\OemVista.inf" />
     <Content Include="Driver\tapinstall.exe" />
     <Content Include="icon.ico" />
-    <Content Include="ip.txt" />
-    <Content Include="VEthernet.dll">
+    <Content Include="ip.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="libasio.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libcrypto-1_1.dll" />
+    <Content Include="libssl-1_1.dll" />
+    <Content Include="libtcpip.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vcruntime140.dll" />
+    <Content Include="VEthernet-Hyperformance.dll" />
+    <None Include="VEthernet.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Driver\tap0901.cat" />

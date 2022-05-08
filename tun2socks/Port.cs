@@ -30,7 +30,7 @@
         private int _onlydnsport = 0;
         private Socket _server = null;
         private Socket _socket = null;
-        private byte[] _buffer = null;
+        private AsyncSocket _asyncsocket = null;
         private byte[] _monitorbuf = null;
         private IPEndPoint _sendtoEP = null;
         private readonly IList<UdpFrame> _sendqueues = new List<UdpFrame>();
@@ -114,6 +114,7 @@
 
         public virtual void Dispose()
         {
+            Interlocked.Exchange(ref this._asyncsocket, null)?.Dispose();
             SocketExtension.Closesocket(Interlocked.Exchange(ref this._server, null));
             SocketExtension.Closesocket(Interlocked.Exchange(ref this._socket, null));
             if (Interlocked.CompareExchange(ref this._disposed, 1, 0) == 0)
@@ -125,7 +126,6 @@
                 }
             }
             Interlocked.Exchange(ref this._sendtoEP, null);
-            Interlocked.Exchange(ref this._buffer, null);
             Interlocked.Exchange(ref this._monitorbuf, null);
             Interlocked.Exchange(ref this._localEP, null);
             Interlocked.Exchange(ref this._datagram, null);
@@ -150,7 +150,6 @@
             }
             try
             {
-                this._buffer = new byte[ushort.MaxValue];
                 this._monitorbuf = new byte[1];
                 this._server = new NetworkSocket(serverEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 this._server.BeginConnect(serverEP, (ar) =>
@@ -202,7 +201,7 @@
                 }
 
                 YieldContext.Integer outlen = new YieldContext.Integer();
-                byte[] messages = this._buffer;
+                byte[] messages = new byte[256]; // Allocation Granularity
                 messages[0] = 0x05;                                 // VER 
                 messages[1] = 0x01;                                 // NMETHODS
                 messages[2] = (byte)(authentication ? 0x02 : 0x00); // METHODS 
@@ -253,12 +252,10 @@
                 try
                 {
                     IPEndPoint interfaceEP = (IPEndPoint)socket.LocalEndPoint;
-                    {
-                        bindEP = new IPEndPoint(interfaceEP.Address, 0);
-                    }
                     this._socket = new NetworkSocket(interfaceEP.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-                    this._socket.Bind(bindEP);
+                    this._socket.Bind(new IPEndPoint(interfaceEP.Address, 0));
                     bindEP = (IPEndPoint)this._socket.LocalEndPoint;
+                    this._asyncsocket = AsyncContext.GetContext().CreateSocket(this._socket);
                 }
                 catch (Exception)
                 {
@@ -292,9 +289,8 @@
                 IPAddress proxyAddress = this._datagram?.Ethernet?.Server?.Address;
                 if (proxyAddress != null)
                 {
-                    int proxyPort = (messages[8] << 8) | (messages[9] & 0xff);
                     success = true;
-                    this._sendtoEP = new IPEndPoint(proxyAddress, proxyPort);
+                    this._sendtoEP = new IPEndPoint(proxyAddress, (messages[8] << 8) | (messages[9] & 0xff));
                 }
             } while (false);
             if (!success)
@@ -337,48 +333,44 @@
             }
         }
 
-        private void ProcessReceiveFrom(IAsyncResult ar)
+        private void ProcessReceiveFrom()
         {
             if (this.IsDisposed)
             {
                 return;
             }
-            byte[] buffer = this._buffer;
-            if (buffer == null)
-            {
-                return;
-            }
-            Socket socket = this._socket;
+            AsyncSocket socket = this._asyncsocket;
             if (socket == null)
             {
                 return;
             }
-            EndPoint listenEP = null;
-            try
-            {
-                listenEP = socket.LocalEndPoint;
-            }
-            catch (Exception) { }
-            if (listenEP == null)
+            byte[] buffer = socket.Context.Buffer;
+            if (buffer == null)
             {
                 return;
             }
-            if (ar == null)
+            bool success = socket.ReceiveFrom(buffer, 0, buffer.Length, (count, ep) =>
             {
-                SocketExtension.BeginReceiveFrom(socket, buffer, 0, buffer.Length, ref listenEP, this.ProcessReceiveFrom);
-            }
-            else
-            {
-                int count = SocketExtension.EndReceiveFrom(socket, ar, ref listenEP);
+                if (count < 1)
+                {
+                    this.Dispose();
+                    return;
+                }
                 if (count > 0)
                 {
-                    IPEndPoint remoteEP = listenEP as IPEndPoint;
-                    if (remoteEP != null && this.OnWanInput(buffer, count, remoteEP))
+                    if (ep is IPEndPoint remoteEP)
                     {
-                        this._agingsw.Restart();
+                        if (this.OnWanInput(buffer, count, remoteEP))
+                        {
+                            this._agingsw.Restart();
+                        }
                     }
                 }
-                this.ProcessReceiveFrom(null);
+                this.ProcessReceiveFrom();
+            });
+            if (!success)
+            {
+                this.Dispose();
             }
         }
 
@@ -449,7 +441,7 @@
             }
             if (!datagram.Ethernet.ProductMode)
             {
-                Console.WriteLine($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
+                Program.PrintMessage($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
             }
             return true;
         }
@@ -465,7 +457,7 @@
                 this._sendqueues.Clear();
                 Interlocked.CompareExchange(ref this._open, 1, 0);
             }
-            this.ProcessReceiveFrom(null);
+            this.ProcessReceiveFrom();
             this.PullWatchOnlineCheck(null);
         }
     }

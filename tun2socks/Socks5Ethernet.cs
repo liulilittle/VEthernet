@@ -27,7 +27,7 @@
 
         [SecurityCritical]
         [SecuritySafeCritical]
-        public Socks5Ethernet(IPEndPoint proxyServer, IPAddress[] dnsAddresses, bool productMode, string user, string password, string bypassIplist, NetworkStatistics networkStatistics) : base(0, networkStatistics)
+        public Socks5Ethernet(IPEndPoint proxyServer, IPAddress[] dnsAddresses, bool productMode, string user, string password, string bypassIplist, NetworkStatistics networkStatistics) : base(subnetstack: true, 0, networkStatistics)
         {
             this.Server = proxyServer ?? throw new ArgumentNullException(nameof(proxyServer));
             NetworkInterface exitNetworkInterface = Layer3Netif.GetPreferredNetworkInterfaceAddress(true, out IPAddress exitGatewayAddress);
@@ -40,6 +40,7 @@
                 this.ApplyDNSServerAddresses = dnsAddresses;
             }
             this.ProductMode = productMode;
+            this.ValidateChecksum = false;
             if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(password))
             {
                 this.User = user;

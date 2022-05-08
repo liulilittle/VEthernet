@@ -10,6 +10,7 @@
 namespace tun2socks
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
@@ -22,6 +23,7 @@ namespace tun2socks
     using VEthernet.Net.Routing;
     using VEthernet.Net.Tun;
     using VEthernet.Utilits;
+    using Timer = VEthernet.Threading.Timer;
     using WebProxy = VEthernet.Net.Internet.WebProxy;
 
     public static class Program
@@ -62,6 +64,7 @@ namespace tun2socks
             // https://blog.csdn.net/liulilittle/article/details/121021222
             Priority.AdjustToHighestPriority();
             SocketExtension.PeriodGCCollect = 10000;
+            Program.DumpMessages();
         }
 
         [SecurityCritical]
@@ -183,6 +186,31 @@ namespace tun2socks
                 }
                 Console.WriteLine("Application is shutting down...");
             }
+
+            // You can kill the process directly or not.
+            Process.GetCurrentProcess().Kill();
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private static readonly ConcurrentQueue<string> PrintMessages = new ConcurrentQueue<string>();
+
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        public static void PrintMessage(string message) => PrintMessages.Enqueue(message);
+
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        private static void DumpMessages()
+        {
+            Timer t = new Timer(100);
+            t.Tick += (_, __) =>
+            {
+                while (PrintMessages.TryDequeue(out string message))
+                {
+                    Console.WriteLine(message);
+                }
+            };
+            t.Start();
         }
     }
 }

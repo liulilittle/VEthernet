@@ -5,6 +5,7 @@
     using System.IO;
     using System.Net;
     using System.Net.Sockets;
+    using System.Security;
     using System.Text;
     using System.Threading;
     using VEthernet.Core;
@@ -12,16 +13,24 @@
     using VEthernet.Net;
     using VEthernet.Net.Auxiliary;
     using VEthernet.Net.Tun;
+    using VEthernet.Threading;
 
     public class Connection : TapTap2Socket.TapTcpClient
     {
+        private readonly ThreadProtection _threadProtection = new ThreadProtection();
         private byte[] _buffer = null;
         private Socket _server = null;
 
+        [SecurityCritical]
+        [SecuritySafeCritical]
         public Connection(Socks5Ethernet ethernet, IPEndPoint localEP, IPEndPoint remoteEP) : base(ethernet, localEP, remoteEP)
         {
-
+            this._threadProtection.UnhandledException += (_, __) => this.Dispose();
         }
+
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        ~Connection() => this.Dispose();
 
         public override void Dispose()
         {
@@ -32,7 +41,7 @@
 
         public override void BeginAccept()
         {
-            Console.WriteLine($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
+            Program.PrintMessage($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
             base.BeginAccept();
         }
 
@@ -47,7 +56,7 @@
 
         protected virtual void OnOpen(EventArgs e)
         {
-            Console.WriteLine($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} open   {this.RemoteEndPoint}");
+            Program.PrintMessage($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} open   {this.RemoteEndPoint}");
             base.EndAccept();
             this.PullTunnelReceive(null);
         }
@@ -85,7 +94,8 @@
             });
         }
 
-        private void PullTunnelReceive(IAsyncResult ar)
+        // ThreadProtection is used to prevent .NET Framework System.Net.Sockets.Socket (ATP) crashes threads or .NET/CLR.
+        private void PullTunnelReceive(IAsyncResult ar) => this._threadProtection.Execute(_ =>
         {
             if (this.IsAbort)
             {
@@ -113,7 +123,7 @@
             {
                 this.Dispose();
             }
-        }
+        });
 
         private bool OpenTunnelAsync()
         {
