@@ -41,7 +41,7 @@
 
         public override void BeginAccept()
         {
-            Program.PrintMessage($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
+            Console.WriteLine($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
             base.BeginAccept();
         }
 
@@ -56,7 +56,7 @@
 
         protected virtual void OnOpen(EventArgs e)
         {
-            Program.PrintMessage($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} open   {this.RemoteEndPoint}");
+            Console.WriteLine($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} open   {this.RemoteEndPoint}");
             base.EndAccept();
             this.PullTunnelReceive(null);
         }

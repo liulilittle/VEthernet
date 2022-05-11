@@ -441,7 +441,7 @@
             }
             if (!datagram.Ethernet.ProductMode)
             {
-                Program.PrintMessage($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
+                Console.WriteLine($"[{DateTime.Now}][UDP]{localEP.ToString().PadRight(16)} sendto {destinationEP}");
             }
             return true;
         }
