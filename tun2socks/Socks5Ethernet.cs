@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.NetworkInformation;
     using System.Security;
@@ -20,7 +19,7 @@
 
     public class Socks5Ethernet : TapTap2Socket
     {
-        private RouteInformation[] _cachesRoutes = null;
+        private readonly IDictionary<IPAddress, RouteInformation> _cachesRoutes = new Dictionary<IPAddress, RouteInformation>();
         private readonly object _syncobj = new object();
         private int _disposed = 0;
         private IEnumerable<IPAddressRange> _bypassIplistRoutes = null;
@@ -71,6 +70,14 @@
 
         public string Password { get; set; }
 
+        public object SynchronizedObject
+        {
+            get
+            {
+                return this._syncobj;
+            }
+        }
+
         public IPAddress ExitGatewayAddress { get; private set; }
 
         public IPAddress ExitInterfaceAddress { get; private set; }
@@ -93,95 +100,117 @@
             IPAddress.Parse("223.6.6.6")
         };
 
-        protected virtual void AddAllRouter()
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        private bool DeleteAllAnyAddress()
         {
-            RouteInformation[] routes = null;
             lock (this._syncobj)
             {
-                routes = Router.FindAllAnyAddress(out Router.Error error).Where(i =>
-                    i.IfIndex != this.Tap.Index && !IPFrame.Equals(i.NextHop, this.Tap.GatewayAddress)).ToArray();
-                this._cachesRoutes = routes;
+                if (this.IsDisposed)
+                {
+                    return false;
+                }
+                var routes = Router.FindAllAnyAddress(out Router.Error error);
+                if (routes != null)
+                {
+                    foreach (RouteInformation route in routes)
+                    {
+                        if (route == null)
+                        {
+                            continue;
+                        }
+                        if (!IPFrame.Equals(route.NextHop, this.Tap.GatewayAddress))
+                        {
+                            this._cachesRoutes[route.NextHop] = route;
+                        }
+                    }
+                }
+                Router.Delete(this._cachesRoutes.Values);
+                return true;
             }
-            IPAddress cirdMiddleMask = IPAddress.Parse("128.0.0.0"); // 0.0.0.0/1
-            if (routes != null)
-            {
-                Router.Delete(this._cachesRoutes);
-            }
-            Router.Create(this.Server.Address, this.ExitGatewayAddress, 1);
-            Router.AddFast(this._bypassIplistRoutes, this.ExitGatewayAddress);
+        }
 
-            Router.Create(IPAddress.Any, IPAddress.Any, this.Tap.GatewayAddress, this.Tap.Index, 1);
-            Router.Create(IPAddress.Any, cirdMiddleMask, this.Tap.GatewayAddress, this.Tap.Index, 1);
-            Router.Create(cirdMiddleMask, cirdMiddleMask, this.Tap.GatewayAddress, this.Tap.Index, 1);
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        private void AddAllAnyAddress()
+        {
+            lock (this._syncobj)
+            {
+                IDictionary<IPAddress, RouteInformation> routes = this._cachesRoutes;
+                if (routes.Count > 0)
+                {
+                    Router.Delete(Router.FindAllAnyAddress(out Router.Error _));
+                    Router.Create(routes.Values);
+                }
+                routes.Clear();
+            }
+        }
+
+        protected virtual void AddAllRouter()
+        {
+            lock (this._syncobj)
+            {
+                this.DeleteAllAnyAddress();
+                IPAddress cirdMiddleMask = IPAddress.Parse("128.0.0.0"); // 0.0.0.0/1
+                Router.Create(IPAddress.Any, IPAddress.Any, this.Tap.GatewayAddress, this.Tap.Index, 1);
+                Router.Create(IPAddress.Any, cirdMiddleMask, this.Tap.GatewayAddress, this.Tap.Index, 1);
+                Router.Create(cirdMiddleMask, cirdMiddleMask, this.Tap.GatewayAddress, this.Tap.Index, 1);
+
+                Router.Create(this.Server.Address, this.ExitGatewayAddress, 1);
+                Router.AddFast(this._bypassIplistRoutes, this.ExitGatewayAddress);
+            }
         }
 
         protected virtual void DeleteAllRouter()
         {
-            RouteInformation[] cachesRoutes = null;
             lock (this._syncobj)
             {
-                cachesRoutes = this._cachesRoutes;
-                this._cachesRoutes = null;
-            }
-            IPAddress cirdMiddleMask = IPAddress.Parse("128.0.0.0"); // 0.0.0.0/1
-            {
+                IPAddress cirdMiddleMask = IPAddress.Parse("128.0.0.0"); // 0.0.0.0/1
                 Router.Delete(IPAddress.Any, this.Tap.GatewayAddress);
                 Router.Delete(IPAddress.Any, this.Tap.GatewayAddress);
                 Router.Delete(cirdMiddleMask, this.Tap.GatewayAddress);
-            }
-            RouteInformation[] routes = Router.FindAllAnyAddress(out Router.Error error);
-            if (routes != null)
-            {
-                if (cachesRoutes != null)
-                {
-                    routes = routes.Where(i =>
-                        cachesRoutes.FirstOrDefault(p => IPFrame.Equals(p.NextHop, i.NextHop)) != null).ToArray();
-                }
-                Router.Delete(routes);
-            }
-            Router.Delete(this.Server.Address, this.ExitGatewayAddress);
-            Router.DeleteFast(Interlocked.Exchange(ref this._bypassIplistRoutes, null), this.ExitGatewayAddress);
-            {
-                bool addDefaultGW = false;
-                if (cachesRoutes != null)
-                {
-                    addDefaultGW = cachesRoutes.
-                        FirstOrDefault(i => IPFrame.Equals(i.Mask, IPAddress.Any)) != null;
-                    Router.Create(cachesRoutes); // 恢复路由
-                }
-                if (!addDefaultGW)
-                {
-                    Router.Create(IPAddress.Any, IPAddress.Any, this.ExitGatewayAddress, 1); // 恢复路由
-                }
+
+                Router.Delete(this.Server.Address, this.ExitGatewayAddress);
+                Router.DeleteFast(Interlocked.Exchange(ref this._bypassIplistRoutes, null), this.ExitGatewayAddress);
+                this.AddAllAnyAddress();
             }
         }
 
         protected virtual void SwitchNamespaceServers(IPAddress[] addresses)
         {
-            Dnss.SetAddresses(this.Tap.Index, addresses);
-            Dnss.SetAddresses(this.ExitInterfaceIfIndex, addresses);
-            Dnss.Flush();
+            lock (this._syncobj)
+            {
+                Dnss.SetAddresses(this.Tap.Index, addresses);
+                Dnss.SetAddresses(this.ExitInterfaceIfIndex, addresses);
+                Dnss.Flush();
+            }
         }
 
         public override void Listen()
         {
-            base.Listen();
-            this.AddAllRouter();
-            this.SwitchNamespaceServers(this.ApplyDNSServerAddresses);
+            lock (this._syncobj)
+            {
+                base.Listen();
+                this.AddAllRouter();
+                this.SwitchNamespaceServers(this.ApplyDNSServerAddresses);
+            }
         }
 
         public override void Dispose()
         {
             if (Interlocked.CompareExchange(ref this._disposed, 1, 0) == 0)
             {
-                using (this.Datagram)
+                lock (this._syncobj)
                 {
-                    base.Dispose();
-                }
-                if (this.Tap != null)
-                {
-                    this.DeleteAllRouter();
-                    this.SwitchNamespaceServers(this.RestoreDNSServerAddresses);
+                    using (this.Datagram)
+                    {
+                        base.Dispose();
+                    }
+                    if (this.Tap != null)
+                    {
+                        this.DeleteAllRouter();
+                        this.SwitchNamespaceServers(this.RestoreDNSServerAddresses);
+                    }
                 }
             }
         }
