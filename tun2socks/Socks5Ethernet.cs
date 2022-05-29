@@ -28,7 +28,7 @@
 
         [SecurityCritical]
         [SecuritySafeCritical]
-        public Socks5Ethernet(IPEndPoint proxyServer, IPAddress[] dnsAddresses, bool productMode, string user, string password, string bypassIplist, NetworkStatistics networkStatistics) : base(subnetstack: true, 0, networkStatistics)
+        public Socks5Ethernet(IPEndPoint proxyServer, IPAddress[] dnsAddresses, bool productMode, bool protectDefaultGateway, string user, string password, string bypassIplist, NetworkStatistics networkStatistics) : base(subnetstack: true, 0, networkStatistics)
         {
             this.Server = proxyServer ?? throw new ArgumentNullException(nameof(proxyServer));
             NetworkInterface exitNetworkInterface = Layer3Netif.GetPreferredNetworkInterfaceAddress(true, out IPAddress exitGatewayAddress);
@@ -40,6 +40,8 @@
             {
                 this.ApplyDNSServerAddresses = dnsAddresses;
             }
+            // Users in mainland China suggest setting this parameter is True, because there may be many malicious software or automation tools that modify Default Gatway on your computer.
+            this.ProtectDefaultGateway = protectDefaultGateway;
             this.ProductMode = productMode;
             this.ValidateChecksum = false;
             if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(password))
@@ -65,6 +67,8 @@
         public Datagram Datagram { get; }
 
         public bool ProductMode { get; }
+
+        public bool ProtectDefaultGateway { get; }
 
         public IPEndPoint Server { get; }
 
@@ -160,7 +164,7 @@
         {
             // Prevent external IP routing table modify default gw, Cause ip traffic to go not tun2socks outbound.
             Stopwatch sw = this._sw;
-            if (sw.IsRunning)
+            if (sw.IsRunning && this.ProtectDefaultGateway)
             {
                 lock (this._syncobj)
                 {
