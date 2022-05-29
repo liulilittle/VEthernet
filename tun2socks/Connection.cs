@@ -41,7 +41,11 @@
 
         public override void BeginAccept()
         {
-            Console.WriteLine($"[{DateTime.Now}][TCP]{this.SourceEndPoint.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
+            IPEndPoint sourceEP = this.SourceEndPoint;
+            if (sourceEP != null)
+            {
+                Console.WriteLine($"[{DateTime.Now}][TCP]{sourceEP.ToString().PadRight(16)} syn    {this.RemoteEndPoint}");
+            }
             base.BeginAccept();
         }
 

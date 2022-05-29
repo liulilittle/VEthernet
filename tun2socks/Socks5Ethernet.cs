@@ -125,7 +125,11 @@
                         }
                         if (!IPFrame.Equals(route.NextHop, this.Tap.GatewayAddress))
                         {
-                            this._cachesRoutes[route.NextHop] = route;
+                            if (this._cachesRoutes.ContainsKey(route.NextHop))
+                            {
+                                continue;
+                            }
+                            this._cachesRoutes.Add(route.NextHop, route);
                         }
                     }
                 }
