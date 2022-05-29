@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Net.NetworkInformation;
@@ -21,6 +22,7 @@
     {
         private readonly IDictionary<IPAddress, RouteInformation> _cachesRoutes = new Dictionary<IPAddress, RouteInformation>();
         private readonly object _syncobj = new object();
+        private readonly Stopwatch _sw = new Stopwatch();
         private int _disposed = 0;
         private IEnumerable<IPAddressRange> _bypassIplistRoutes = null;
 
@@ -100,6 +102,8 @@
             IPAddress.Parse("223.6.6.6")
         };
 
+        protected virtual int AutomaticGatewayTimeout => 5000;
+
         [SecurityCritical]
         [SecuritySafeCritical]
         private bool DeleteAllAnyAddress()
@@ -146,6 +150,26 @@
             }
         }
 
+        [SecurityCritical]
+        [SecuritySafeCritical]
+        protected override void OnTick(EventArgs e)
+        {
+            // Prevent external IP routing table modify default gw, Cause ip traffic to go not tun2socks outbound.
+            Stopwatch sw = this._sw;
+            if (sw.IsRunning)
+            {
+                lock (this._syncobj)
+                {
+                    if (sw.ElapsedMilliseconds >= this.AutomaticGatewayTimeout)
+                    {
+                        sw.Restart();
+                        this.DeleteAllAnyAddress();
+                    }
+                }
+            }
+            base.OnTick(e);
+        }
+
         protected virtual void AddAllRouter()
         {
             lock (this._syncobj)
@@ -186,22 +210,51 @@
             }
         }
 
+        [SecurityCritical]
+        [SecuritySafeCritical]
         public override void Listen()
         {
-            lock (this._syncobj)
+            Exception exception = null;
+            try
             {
-                base.Listen();
-                this.AddAllRouter();
-                this.SwitchNamespaceServers(this.ApplyDNSServerAddresses);
+                lock (this._syncobj)
+                {
+                    if (this.IsDisposed)
+                    {
+                        exception = new ObjectDisposedException("tun2socks");
+                        return;
+                    }
+                    try
+                    {
+                        base.Listen();
+                        this.AddAllRouter();
+                        this.SwitchNamespaceServers(this.ApplyDNSServerAddresses);
+                        this._sw.Restart();
+                    }
+                    catch (Exception e)
+                    {
+                        exception = e;
+                    }
+                }
+            }
+            finally
+            {
+                if (exception != null)
+                {
+                    throw exception;
+                }
             }
         }
 
+        [SecurityCritical]
+        [SecuritySafeCritical]
         public override void Dispose()
         {
             if (Interlocked.CompareExchange(ref this._disposed, 1, 0) == 0)
             {
                 lock (this._syncobj)
                 {
+                    this._sw.Reset();
                     using (this.Datagram)
                     {
                         base.Dispose();
@@ -212,6 +265,7 @@
                         this.SwitchNamespaceServers(this.RestoreDNSServerAddresses);
                     }
                 }
+                GC.SuppressFinalize(this);
             }
         }
 
