@@ -138,7 +138,7 @@
             Socks5Ethernet ethernet = (Socks5Ethernet)this.Tap;
             try
             {
-                this._buffer = new byte[Layer3Netif.MSS];
+                this._buffer = new byte[Layer3Netif.MTU];
                 this._server = new NetworkSocket(ethernet.Server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 this._server.BeginConnect(ethernet.Server, (ar) =>
                 {

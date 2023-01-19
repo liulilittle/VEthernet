@@ -15,7 +15,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -46,9 +46,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="VEthernet, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="VEthernet-Hyperformance, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\VEthernet.dll</HintPath>
+      <HintPath>.\VEthernet-Hyperformance.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
