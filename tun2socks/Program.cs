@@ -92,6 +92,8 @@ namespace tun2socks
             return s == "y" || s == "yes" || s == "true" || s == "1";
         }
 
+        // .NET Framework 4.0 can be used to compile, I do not have a .NET 4.0 framework to choose from here, but you can.
+        // .NET Framework 4.0 compiles and runs trouble-free, because the framework is.  NET 4.0 above the implementation.
         [MTAThread]
         private static void Main(string[] args)
         {
