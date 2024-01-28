@@ -3,6 +3,9 @@
 ################################################################################
 
 /.vs
-/VEthernet
+/VEthernet/bin
+/VEthernet/obj
 /tun2socks/bin
 /tun2socks/obj
+/tun2socks/.vs
+/tun2socks/app.config

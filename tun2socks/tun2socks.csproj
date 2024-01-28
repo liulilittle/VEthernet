@@ -8,8 +8,9 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>tun2socks</RootNamespace>
     <AssemblyName>tun2socks</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -21,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -31,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -46,10 +49,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="VEthernet, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\VEthernet.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Datagram.cs" />
@@ -70,19 +69,25 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="libcrypto-1_1.dll" />
+    <Content Include="libnet.dll" />
     <Content Include="libssl-1_1.dll" />
     <Content Include="libtcpip.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="vcruntime140.dll" />
-    <Content Include="VEthernet-Hyperformance.dll" />
-    <None Include="VEthernet.dll" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Driver\tap0901.cat" />
     <None Include="Driver\tap0901.sys" />
     <None Include="Properties\app.manifest" />
     <None Include="start.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VEthernet\VEthernet.csproj">
+      <Project>{25f05131-b9d9-4a16-9f60-8c7d50012421}</Project>
+      <Name>VEthernet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

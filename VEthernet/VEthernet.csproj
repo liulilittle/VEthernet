@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{25F05131-B9D9-4A16-9F60-8C7D50012421}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>VEthernet</RootNamespace>
+    <AssemblyName>VEthernet</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WIN32;OPENSSL_1_1;_PACKET_CHECKSUM;_AARCH;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collections\LinkedListIterator.cs" />
+    <Compile Include="Converter\BitConverterr.cs" />
+    <Compile Include="Core\BufferSegment.cs" />
+    <Compile Include="Core\CheckSum.cs" />
+    <Compile Include="Core\Cryptography\Encryptor.cs" />
+    <Compile Include="Core\Cryptography\Hash.cs" />
+    <Compile Include="Core\Cryptography\Rc4.cs" />
+    <Compile Include="Core\Environments.cs" />
+    <Compile Include="Coroutines\YieldContext.cs" />
+    <Compile Include="Coroutines\YieldScheduler.cs" />
+    <Compile Include="Cryptography\Cipher.cs" />
+    <Compile Include="Cryptography\EVP.cs" />
+    <Compile Include="Cryptography\RC4.cs" />
+    <Compile Include="Cryptography\Standard\Hash.cs" />
+    <Compile Include="Cryptography\Standard\Rc4.cs" />
+    <Compile Include="Hooking\Hooker.cs" />
+    <Compile Include="Hooking\Interceptor.cs" />
+    <Compile Include="Hooking\Ptr.cs" />
+    <Compile Include="IO\DirectoryAuxiliary.cs" />
+    <Compile Include="IO\FileAuxiliary.cs" />
+    <Compile Include="IO\LZ77Auxiliary.cs" />
+    <Compile Include="Net\Auxiliary\AsyncContext.cs" />
+    <Compile Include="Net\Auxiliary\AsyncScheduler.cs" />
+    <Compile Include="Net\Auxiliary\AsyncSocket.cs" />
+    <Compile Include="Net\Auxiliary\SocketExtension.cs" />
+    <Compile Include="Net\Dns\Dns2.cs" />
+    <Compile Include="Net\Ethernet.cs" />
+    <Compile Include="Net\Icmp\IcmpFrame.cs" />
+    <Compile Include="Net\Icmp\IcmpLayer.cs" />
+    <Compile Include="Net\IConnection.cs" />
+    <Compile Include="Net\Internet\Properties.cs" />
+    <Compile Include="Net\Internet\WebProxy.cs" />
+    <Compile Include="Net\IP\IPFrame.cs" />
+    <Compile Include="Net\IP\IPv4Layer.cs" />
+    <Compile Include="Net\LwIP\Netstack.cs" />
+    <Compile Include="Net\NetIo.cs" />
+    <Compile Include="Net\NetworkSocket.cs" />
+    <Compile Include="Net\NetworkStatistics.cs" />
+    <Compile Include="Net\QoS.cs" />
+    <Compile Include="Net\Routing\RouteInformation.cs" />
+    <Compile Include="Net\Routing\Router.cs" />
+    <Compile Include="Net\Routing\RouteTableManager.cs" />
+    <Compile Include="Net\Socks5\IPEndPointObject.cs" />
+    <Compile Include="Net\Socks5\ISocks5Communication.cs" />
+    <Compile Include="Net\Socks5\ISocks5NetworkTunnel.cs" />
+    <Compile Include="Net\Socks5\ISocks5NetworkTunnelFactory.cs" />
+    <Compile Include="Net\Socks5\NetworkAddress.cs" />
+    <Compile Include="Net\Socks5\Socks5Communication.cs" />
+    <Compile Include="Net\Socks5\Socks5NetworkClient.cs" />
+    <Compile Include="Net\Socks5\Socks5NetworkTunnelFactory.cs" />
+    <Compile Include="Net\Socks5\Tcp\Socks5NetworkTunnel.cs" />
+    <Compile Include="Net\Socks5\Udp\Socks5Extension.cs" />
+    <Compile Include="Net\Socks5\Udp\Socks5NetworkTunnel.cs" />
+    <Compile Include="Net\Tap.cs" />
+    <Compile Include="Net\TapTap2Socket.cs" />
+    <Compile Include="Net\Tcp\TcpFrame.cs" />
+    <Compile Include="Net\Tcp\TcpLayer.cs" />
+    <Compile Include="Net\Tools\Bits.cs" />
+    <Compile Include="Net\Tools\IPAddressRange.cs" />
+    <Compile Include="Net\Tun\INetif.cs" />
+    <Compile Include="Net\Tun\Layer3Netif.cs" />
+    <Compile Include="Net\Udp\UdpFrame.cs" />
+    <Compile Include="Net\Udp\UdpLayer.cs" />
+    <Compile Include="Net\WebSocket\CloseEventArgs.cs" />
+    <Compile Include="Net\WebSocket\CloseEventHandler.cs" />
+    <Compile Include="Net\WebSocket\ErrorEventArgs.cs" />
+    <Compile Include="Net\WebSocket\ErrorEventHandler.cs" />
+    <Compile Include="Net\WebSocket\MessageEventArgs.cs" />
+    <Compile Include="Net\WebSocket\MessageEventHandler.cs" />
+    <Compile Include="Net\WebSocket\OpCode.cs" />
+    <Compile Include="Net\WebSocket\OpenEventHandler.cs" />
+    <Compile Include="Net\WebSocket\WebSocket.cs" />
+    <Compile Include="Net\WebSocket\WebSocketFrame.cs" />
+    <Compile Include="Net\WebSocket\WebSocketServer.cs" />
+    <Compile Include="Net\WebSocket\WebSocketServerHandshake.cs" />
+    <Compile Include="Net\WebSocket\WebSocketSessionHandshake.cs" />
+    <Compile Include="Net\Web\HttpListener.cs" />
+    <Compile Include="Net\Web\HttpTunnel.cs" />
+    <Compile Include="OpenSSL\Cipher.cs" />
+    <Compile Include="OpenSSL\Native.cs" />
+    <Compile Include="OpenSSL\Version.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs" />
+    <Compile Include="SimpleJSON\SimpleJSON.cs" />
+    <Compile Include="Threading\ThreadProtection.cs" />
+    <Compile Include="Threading\Timer.cs" />
+    <Compile Include="Threading\TimerScheduler.cs" />
+    <Compile Include="Utilits\Dnss.cs" />
+    <Compile Include="Utilits\Fw.cs" />
+    <Compile Include="Utilits\Ipep.cs" />
+    <Compile Include="Utilits\NetworkSettings.cs" />
+    <Compile Include="Utilits\Priority.cs" />
+    <Compile Include="Utilits\Random.cs" />
+    <Compile Include="Win32\Memory.cs" />
+    <Compile Include="Win32\Mutex.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\launchSettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "tun2socks": {
+      "commandName": "Project",
+      "commandLineArgs": "--server=47.108.83.88 --port=2080"
+    }
+  }
+}
